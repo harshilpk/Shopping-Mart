@@ -18,17 +18,12 @@ exports.postAddProduct = (req, res, nect) => {
   res.redirect("/");
 };
 
-exports.getProducts = (req, res, next) => {
-  // console.log(adminData.products);
-  // res.sendFile(path.join(__dirname, '../', "views", "shop.html"));
-  const products = Product.fetchAll(products => {
-    res.render("shop/product-list", {
-      prods: products,
-      pageTitle: "Shop",
-      path: "/",
-      activeShop: true,
-      productCSS: true,
-      hasProducts: products.length > 0
-    });
-  });
-};
+exports.getProducts = (req,res,next) => {
+    Product.fetchAll(products => {
+        res.render("admin/products", {
+          prods: products,
+          pageTitle: "Admin Products",
+          path: "/admin/products"
+        });
+      });
+}
