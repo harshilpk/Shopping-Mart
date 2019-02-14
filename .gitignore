@@ -1,1 +1,4 @@
 /node_modules
+/models/product(Without DB).js
+/controllers/admin(WithoutDB).js
+/controllers/shop(WithoutDB).js
