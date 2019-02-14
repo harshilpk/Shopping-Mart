@@ -1,4 +1,4 @@
-const Product = require("../models/product.js");
+const Product = require("../models/product(WITHSEQUELIZE.js");
 const Cart = require("../models/cart(WithoutDB).js/index.js.js");
 exports.getProducts = (req, res, next) => {
   // console.log(adminData.products);

@@ -1,4 +1,4 @@
-const Product = require("../models/product.js");
+const Product = require("../models/product(WITHSEQUELIZE.js/index.js");
 
 exports.getAddProduct = (req, res, next) => {
   // res.sendFile(path.join(__dirname, "../", "views", "add-product.html"));

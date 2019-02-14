@@ -1,4 +1,4 @@
-const db = require("../util/database");
+const db = require("../util/database(Sequelize)");
 
 const Cart = require("./cart(WithoutDB)");
 
