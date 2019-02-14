@@ -1,5 +1,5 @@
 const Product = require("../models/product.js");
-const Cart = require("../models/cart.js");
+const Cart = require("../models/cart(WithoutDB).js/index.js.js");
 exports.getProducts = (req, res, next) => {
   // console.log(adminData.products);
   // res.sendFile(path.join(__dirname, '../', "views", "shop.html"));

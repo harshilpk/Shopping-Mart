@@ -1,6 +1,6 @@
 const db = require("../util/database");
 
-const Cart = require("./cart");
+const Cart = require("./cart(WithoutDB)");
 
 module.exports = class Product {
   constructor(id, title, imageUrl, description, price) {
