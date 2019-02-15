@@ -5,7 +5,7 @@ let _db;
 
 const mongoConnect = callback => {
   MongoClient.connect(
-    "mongodb+srv://Harshil:dhoni@00731@cluster0-b0pi2.mongodb.net/test?retryWrites=true",
+    "mongodb+srv://Harshil:dhoni007@cluster0-b0pi2.mongodb.net/shop?retryWrites=true",
     { useNewUrlParser: true }
   )
     .then(client => {
