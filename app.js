@@ -14,7 +14,8 @@ const User = require("./models/user");
 // const CartItem = require("./models/cart-item");
 // const Order = require('./models/order');
 // const OrderItem = require('./models/order-item')
-const mongoConnect = require("./util/database").mongoConnect;
+// const mongoConnect = require("./util/database").mongoConnect;
+const mongoose = require("mongoose");
 
 const app = express();
 
@@ -44,9 +45,11 @@ app.set("views", "views");
 //_______________________________________________________________MYSQL________________________
 // first request
 app.use((req, res, next) => {
-  User.findById("5c66210677142031943a07da")
+  User.findById("5c674325a3cb3b2b74544241")
     .then(user => {
-      req.user = new User(user.name, user.email, user.cart, user._id);
+      // for MongoDB
+      // req.user = new User(user.name, user.email, user.cart, user._id);
+      req.user = user;
       next();
     })
     .catch(err => {
@@ -103,6 +106,32 @@ app.use(errorController.get404);
 //_______________________________________________________________MYSQL________________________
 
 // server.listen(3000);
-mongoConnect(() => {
-  app.listen(3000);
-});
+// mongoConnect(() => {
+//   app.listen(4000);
+// });
+// app.listen(3000);
+
+mongoose
+  .connect(
+    "mongodb+srv://Harshil:dhoni007@cluster0-b0pi2.mongodb.net/shop?retryWrites=true",
+    { useNewUrlParser: true }
+  )
+  .then(result => {
+    User.findOne().then(user => {
+      if (!user) {
+        const user = new User({
+          name: "Harshil",
+          email: "test@test.com",
+          cart: {
+            items: []
+          }
+        });
+        user.save();
+      }
+    });
+    app.listen(3000);
+    console.log("CONNECTED");
+  })
+  .catch(err => {
+    console.log(err);
+  });
