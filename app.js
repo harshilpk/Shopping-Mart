@@ -16,8 +16,16 @@ const User = require("./models/user");
 // const OrderItem = require('./models/order-item')
 // const mongoConnect = require("./util/database").mongoConnect;
 const mongoose = require("mongoose");
+const authRoutes = require("./routes/auth");
+const session = require("express-session");
+const MongoDbStore = require("connect-mongodb-session")(session);
 
 const app = express();
+const store = new MongoDbStore({
+  uri:
+    "mongodb+srv://Harshil:dhoni007@cluster0-b0pi2.mongodb.net/shop?retryWrites=true",
+  collection: "sessions"
+});
 
 // db.execute("SELECT * FROM products")
 //   .then(result => {
@@ -42,10 +50,25 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", "views");
 
+
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  session({
+    secret: "my secret",
+    resave: false,
+    saveUninitialized: false,
+    store: store
+  })
+);
 //_______________________________________________________________MYSQL________________________
 // first request
 app.use((req, res, next) => {
-  User.findById("5c674325a3cb3b2b74544241")
+  if (!req.session.user) {
+    return next();
+  }
+  User.findById(req.session.user._id)
     .then(user => {
       // for MongoDB
       // req.user = new User(user.name, user.email, user.cart, user._id);
@@ -57,12 +80,10 @@ app.use((req, res, next) => {
     });
 });
 //_______________________________________________________________MYSQL________________________
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, "public")));
 app.use("/admin", adminRoutes);
 
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorController.get404);
 
@@ -114,7 +135,9 @@ app.use(errorController.get404);
 mongoose
   .connect(
     "mongodb+srv://Harshil:dhoni007@cluster0-b0pi2.mongodb.net/shop?retryWrites=true",
-    { useNewUrlParser: true }
+    {
+      useNewUrlParser: true
+    }
   )
   .then(result => {
     User.findOne().then(user => {
