@@ -19,6 +19,8 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const session = require("express-session");
 const MongoDbStore = require("connect-mongodb-session")(session);
+const csrf = require("csurf");
+const flash = require('connect-flash');
 
 const app = express();
 const store = new MongoDbStore({
@@ -26,6 +28,7 @@ const store = new MongoDbStore({
     "mongodb+srv://Harshil:dhoni007@cluster0-b0pi2.mongodb.net/shop?retryWrites=true",
   collection: "sessions"
 });
+const csrfProtection = csrf();
 
 // db.execute("SELECT * FROM products")
 //   .then(result => {
@@ -50,8 +53,6 @@ const store = new MongoDbStore({
 app.set("view engine", "ejs");
 app.set("views", "views");
 
-
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
@@ -62,6 +63,8 @@ app.use(
     store: store
   })
 );
+app.use(csrfProtection);
+app.use(flash());
 //_______________________________________________________________MYSQL________________________
 // first request
 app.use((req, res, next) => {
@@ -80,6 +83,13 @@ app.use((req, res, next) => {
     });
 });
 //_______________________________________________________________MYSQL________________________
+
+app.use((req,res,next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+})
+
 app.use("/admin", adminRoutes);
 
 app.use(shopRoutes);
@@ -140,18 +150,18 @@ mongoose
     }
   )
   .then(result => {
-    User.findOne().then(user => {
-      if (!user) {
-        const user = new User({
-          name: "Harshil",
-          email: "test@test.com",
-          cart: {
-            items: []
-          }
-        });
-        user.save();
-      }
-    });
+    // User.findOne().then(user => {
+    //   if (!user) {
+    //     const user = new User({
+    //       name: "Harshil",
+    //       email: "test@test.com",
+    //       cart: {
+    //         items: []
+    //       }
+    //     });
+    //     user.save();
+    //   }
+    // });
     app.listen(3000);
     console.log("CONNECTED");
   })
