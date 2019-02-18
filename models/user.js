@@ -8,9 +8,11 @@ const userSchema = new Schema({
     required: true
   },
   password: {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
+  resetToken: String,
+  resetTokenExpiration: Date,
   cart: {
     items: [
       {
@@ -46,16 +48,16 @@ userSchema.methods.addToCart = function(product) {
 };
 
 userSchema.methods.clearCart = function() {
-    this.cart = {items:[]};
-    return this.save();
-}
- 
-userSchema.methods.removeFromCart = function (productId) {
-    const updatedCartItems = this.cart.items.filter(item => {
-      return item.productId.toString() !== productId.toString();
-    });
-    this.cart.items = updatedCartItems;
-    return this.save();
-}
+  this.cart = { items: [] };
+  return this.save();
+};
+
+userSchema.methods.removeFromCart = function(productId) {
+  const updatedCartItems = this.cart.items.filter(item => {
+    return item.productId.toString() !== productId.toString();
+  });
+  this.cart.items = updatedCartItems;
+  return this.save();
+};
 
 module.exports = mongoose.model("User", userSchema);
