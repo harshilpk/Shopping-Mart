@@ -20,7 +20,7 @@ const authRoutes = require("./routes/auth");
 const session = require("express-session");
 const MongoDbStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
-const flash = require('connect-flash');
+const flash = require("connect-flash");
 
 const app = express();
 const store = new MongoDbStore({
@@ -65,6 +65,11 @@ app.use(
 );
 app.use(csrfProtection);
 app.use(flash());
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 //_______________________________________________________________MYSQL________________________
 // first request
 app.use((req, res, next) => {
@@ -75,27 +80,35 @@ app.use((req, res, next) => {
     .then(user => {
       // for MongoDB
       // req.user = new User(user.name, user.email, user.cart, user._id);
+      if (!user) {
+        return next();
+      }
       req.user = user;
       next();
     })
     .catch(err => {
-      console.log(err);
+      next(new Error(err));
     });
 });
 //_______________________________________________________________MYSQL________________________
-
-app.use((req,res,next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
-  next();
-})
 
 app.use("/admin", adminRoutes);
 
 app.use(shopRoutes);
 app.use(authRoutes);
 
+app.get("/500", errorController.get500);
 app.use(errorController.get404);
+
+app.use((error, req, res, next) => {
+  // res.status(error.httpStatusCode).render(...)
+  // res.redirect("/500");
+  res.status(500).render("500", {
+    pageTitle: "Error!",
+    path: "",
+    isAuthenticated: req.session.isLoggedIn
+  });
+});
 
 // RAW LOGIC
 // const server = http.createServer(app);
