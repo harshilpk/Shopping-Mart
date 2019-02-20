@@ -5,16 +5,32 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
 
+const ITEMS_PER_PAGE = 1;
+
 exports.getProducts = (req, res, next) => {
   // console.log(adminData.products);
   // res.sendFile(path.join(__dirname, '../', "views", "shop.html"));
+  const page = +req.query.page || 1;
+  let totalItems;
   Product.find()
+    .countDocuments()
+    .then(numberofProducts => {
+      totalItems = numberofProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then(products => {
       res.render("shop/product-list", {
         prods: products,
         pageTitle: "All Products",
         path: "/products",
-        isAuthenticated: req.session.isLoggedIn
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
       });
     })
     .catch(err => {
@@ -43,12 +59,27 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  const page = +req.query.page || 1;
+  let totalItems;
   Product.find()
+    .countDocuments()
+    .then(numberofProducts => {
+      totalItems = numberofProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then(products => {
       res.render("shop/index", {
         prods: products,
         pageTitle: "Shop",
-        path: "/"
+        path: "/",
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
       });
     })
     .catch(err => {
@@ -226,7 +257,12 @@ exports.getInvoice = (req, res, next) => {
       pdfDoc
         .fontSize(14)
         .text(
-          p.productData.title + " - " + p.quantity + " x " + "$" + p.productData.price
+          p.productData.title +
+            " - " +
+            p.quantity +
+            " x " +
+            "$" +
+            p.productData.price
         );
     });
     pdfDoc.text("-----");
