@@ -4,6 +4,7 @@ const PDFDocument = require("pdfkit");
 
 const fs = require("fs");
 const path = require("path");
+const stripe = require("stripe")("sk_test_eIoEILSgk7cOPzavLeRTBhu0");
 
 const ITEMS_PER_PAGE = 1;
 
@@ -186,10 +187,19 @@ exports.getOrders = (req, res, next) => {
 };
 
 exports.postOrder = (req, res, next) => {
+  // Token is created using Checkout or Elements!
+  // Get the payment token ID submitted by the form:
+  const token = req.body.stripeToken; // Using Express
+  let totalSum = 0;
   req.user
     .populate("cart.items.productId")
     .execPopulate()
     .then(user => {
+      
+      user.cart.items.forEach(p => {
+        totalSum += p.quantity * p.productId.price;
+      });
+
       console.log("I'M HERE");
       const products = user.cart.items.map(i => {
         return { quantity: i.quantity, productData: { ...i.productId._doc } };
@@ -205,6 +215,13 @@ exports.postOrder = (req, res, next) => {
       return order.save();
     })
     .then(result => {
+      const charge = stripe.charges.create({
+        amount: totalSum * 100,
+        currency: "usd",
+        description: "Example Order",
+        source: token,
+        metadata: { order_id: result._id.toString() }
+      });
       // console.log("ADDED TO ORDERS");
       return req.user.clearCart();
     })
@@ -219,10 +236,28 @@ exports.postOrder = (req, res, next) => {
 };
 
 exports.getCheckout = (req, res, next) => {
-  res.render("shop/checkout", {
-    path: "/checkout",
-    pageTitle: "Checkout"
-  });
+  req.user
+    .populate("cart.items.productId")
+    .execPopulate()
+    .then(user => {
+      const products = user.cart.items;
+      let total = 0;
+      products.forEach(product => {
+        total += product.quantity * product.productId.price;
+      });
+      res.render("shop/checkout", {
+        path: "/checkout",
+        pageTitle: "Checkout",
+        products: products,
+        totalSum: total,
+        isAuthenticated: req.session.isLoggedIn
+      });
+    })
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.getInvoice = (req, res, next) => {

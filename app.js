@@ -22,6 +22,9 @@ const MongoDbStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
 const multer = require('multer');
+const shopController = require("./controllers/shop");
+const isAuth = require('./middleware/isAuth');
+
 
 const app = express();
 const store = new MongoDbStore({
@@ -87,11 +90,10 @@ app.use(
     store: store
   })
 );
-app.use(csrfProtection);
+
 app.use(flash());
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
   next();
 });
 //_______________________________________________________________MYSQL________________________
@@ -115,6 +117,14 @@ app.use((req, res, next) => {
     });
 });
 //_______________________________________________________________MYSQL________________________
+
+app.post("/create-order", isAuth, shopController.postOrder);
+
+app.use(csrfProtection);
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 app.use("/admin", adminRoutes);
 
