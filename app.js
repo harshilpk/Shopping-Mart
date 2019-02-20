@@ -21,6 +21,7 @@ const session = require("express-session");
 const MongoDbStore = require("connect-mongodb-session")(session);
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const multer = require('multer');
 
 const app = express();
 const store = new MongoDbStore({
@@ -50,11 +51,34 @@ const csrfProtection = csrf();
 // app.set("views", "views");
 // app.set("view engine", "handlebars");
 // app.set("views", "views");
+
 app.set("view engine", "ejs");
 app.set("views", "views");
 
+const fileStorage = multer.diskStorage({
+  destination: (req,file,cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname)
+  }
+})
+
+const fileFilter = (req,file,cb) => {
+  if(file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+    cb(null,true);
+  }
+  else {
+    cb(null,false);
+  }
+  
+}
+
+
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('image'))
 app.use(express.static(path.join(__dirname, "public")));
+app.use('/images',express.static(path.join(__dirname, "images")));
 app.use(
   session({
     secret: "my secret",
@@ -97,18 +121,18 @@ app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
-app.get("/500", errorController.get500);
+// app.use("/500", errorController.get500);
 app.use(errorController.get404);
 
-app.use((error, req, res, next) => {
-  // res.status(error.httpStatusCode).render(...)
-  // res.redirect("/500");
-  res.status(500).render("500", {
-    pageTitle: "Error!",
-    path: "",
-    isAuthenticated: req.session.isLoggedIn
-  });
-});
+// app.use(( req, res, next) => {
+//   // res.status(error.httpStatusCode).render(...)
+//   // res.redirect("/500");
+//   res.status(500).render("500", {
+//     pageTitle: "Error!",
+//     path: "",
+//     isAuthenticated: req.session.isLoggedIn
+//   });
+// });
 
 // RAW LOGIC
 // const server = http.createServer(app);

@@ -15,7 +15,7 @@ exports.get500 = (req, res, next) => {
     .status(500)
     .render("500", {
       pageTitle: "Error!",
-      path: "",
+      path: "/500",
       isAuthenticated: req.session.isLoggedIn
     });
 };
